@@ -18,12 +18,12 @@ import java.util.Properties;
  * kafka-topics --bootstrap-server localhost:9092 --create --topic simple-topic
  * kafka-console-producer --bootstrap-server localhost:9092 --topic simple-topic
  */
-public class ConsumerWakeUp {
+public class ConsumerWakeUpV2 {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(ConsumerWakeUp.class.getName());
+    public static final Logger LOGGER = LoggerFactory.getLogger(ConsumerWakeUpV2.class.getName());
 
     private static final String BOOTSTRAP_SERVERS_CONFIG = "localhost:9092";
-    private static final String GROUP_NAME = "group-01-static";
+    private static final String GROUP_NAME = "group-02";
     private static final String TOPIC_NAME = "pizza-topic";
 
     public static void main(String[] args) {
@@ -33,9 +33,8 @@ public class ConsumerWakeUp {
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS_CONFIG);
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_NAME);
-        properties.setProperty(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "3");
+        properties.setProperty(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, "60000");
 
         // kafka broker subscribe
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
@@ -56,12 +55,21 @@ public class ConsumerWakeUp {
         }));
 
         // poll
+        long count = 0;
         try {
             while (true) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000L));
+                LOGGER.info("############## count: {}, ConsumerRecords count: {}", count++, records.count());
 
                 for (ConsumerRecord<String, String> record : records) {
                     LOGGER.info("record key: {}, value: {}, partition: {}, record_offset: {}", record.key(), record.value(), record.partition(), record.offset());
+                }
+
+                try {
+                    LOGGER.info("main thread is sleeping {} ms during while loop ", (count * 10000));
+                    Thread.sleep((count * 10000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         } catch (WakeupException e) {
@@ -70,6 +78,5 @@ public class ConsumerWakeUp {
             LOGGER.info("finally consumer is closing");
             consumer.close();
         }
-
     }
 }

@@ -1,9 +1,6 @@
 package org.example;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
@@ -15,16 +12,21 @@ import java.util.Properties;
 
 /**
  * kafka consumer graceful shutdown
- * kafka-topics --bootstrap-server localhost:9092 --create --topic simple-topic
- * kafka-console-producer --bootstrap-server localhost:9092 --topic simple-topic
+ * kafka-topics --bootstrap-server localhost:9092 --create --topic topic-p3-t1 --partitions 3
+ * kafka-topics --bootstrap-server localhost:9092 --create --topic topic-p3-t2 --partitions 3
+ * kafka-console-producer --bootstrap-server localhost:9092 --topic topic-p3-t1
+ * kafka-console-producer --bootstrap-server localhost:9092 --topic topic-p3-t2
+ * kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group group-round-robin-topic
  */
-public class ConsumerWakeUp {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(ConsumerWakeUp.class.getName());
+public class ConsumerRoundRobin {
+
+    public static final Logger LOGGER = LoggerFactory.getLogger(ConsumerRoundRobin.class.getName());
 
     private static final String BOOTSTRAP_SERVERS_CONFIG = "localhost:9092";
-    private static final String GROUP_NAME = "group-01-static";
-    private static final String TOPIC_NAME = "pizza-topic";
+    private static final String GROUP_NAME = "group-round-robin-topic";
+    private static final String TOPIC_A_NAME = "topic-p3-t1";
+    private static final String TOPIC_B_NAME = "topic-p3-t2";
 
     public static void main(String[] args) {
 
@@ -33,13 +35,12 @@ public class ConsumerWakeUp {
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS_CONFIG);
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_NAME);
-        properties.setProperty(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, "3");
+        properties.setProperty(ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, RoundRobinAssignor.class.getName());
 
         // kafka broker subscribe
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
-        consumer.subscribe(List.of(TOPIC_NAME));
+        consumer.subscribe(List.of(TOPIC_A_NAME, TOPIC_B_NAME));
 
         Thread mainThread = Thread.currentThread();
 
@@ -61,7 +62,7 @@ public class ConsumerWakeUp {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000L));
 
                 for (ConsumerRecord<String, String> record : records) {
-                    LOGGER.info("record key: {}, value: {}, partition: {}, record_offset: {}", record.key(), record.value(), record.partition(), record.offset());
+                    LOGGER.info("topic: {}, record key: {}, partition: {}, record_offset: {}, value: {}", record.topic(), record.key(), record.partition(), record.offset(), record.value());
                 }
             }
         } catch (WakeupException e) {
