@@ -22,7 +22,7 @@ public class SimpleConsumer {
     public static final Logger LOGGER = LoggerFactory.getLogger(SimpleConsumer.class.getName());
 
     private static final String BOOTSTRAP_SERVERS_CONFIG = "localhost:9092";
-    private static final String GROUP_NAME = "group_01";
+    private static final String GROUP_NAME = "simple-group";
     private static final String TOPIC_NAME = "simple-topic";
 
     public static void main(String[] args) {
@@ -32,7 +32,6 @@ public class SimpleConsumer {
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS_CONFIG);
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_NAME);
 
         // kafka broker subscribe
