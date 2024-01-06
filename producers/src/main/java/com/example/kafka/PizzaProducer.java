@@ -37,9 +37,9 @@ public class PizzaProducer {
 
         // 3. message send
         var number = -1; // -1 이라면 while문에서 무한루프
-        var interIntervalMillis = 1000; // 1000이면 1초마다 메시지를 발행
-        var intervalMillis = 1000;
-        var intervalCount = 1000;
+        var interIntervalMillis = 5000; // 1000이면 1초마다 메시지를 발행
+        var intervalMillis = 0;
+        var intervalCount = 0;
         var isSync = true;
         sendPizzaMessage(kafkaProducer, number, interIntervalMillis, intervalMillis, intervalCount, isSync);
 
