@@ -63,8 +63,8 @@ kafka-server-start $CONFLUENT_HOME/etc/kafka/server.properties
 8. 환경 설정
 ```
 1. mkdir data (home 디렉토리에서 data 디렉토리 생성)
-2. mkdir zookeeper
-3. mkdir kafka-logs
+2. mkdir zookeeper (data 디렉토리에서 생성)
+3. mkdir kafka-logs (data 디렉토리에서 생성)
 4. cd $CONFLUENT_HOME/etc/kafka
 5. vi server.properties
   log.dirs=/home/data/kafka-logs 기존 로그 디렉토리를 이와 같이 변경
